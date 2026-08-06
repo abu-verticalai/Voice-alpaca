@@ -1,0 +1,5 @@
+/* Cleared to avoid conflicts with Voice System CSS */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
