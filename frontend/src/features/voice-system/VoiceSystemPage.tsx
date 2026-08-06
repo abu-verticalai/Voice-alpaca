@@ -8,7 +8,7 @@ import ClosingSection from './ClosingSection';
 import EndCallSection from './EndCallSection';
 import DynamicVariablesSection from './DynamicVariablesSection';
 import WebCallDialog from './WebCallDialog';
-import { extractVariables, hasMalformedVariables } from './util';
+import { extractVariables } from './util';
 import '../../styles/voice-system.css';
 
 const API_BASE = 'http://localhost:8000/api/agents';
@@ -23,7 +23,22 @@ const VoiceSystemPage: React.FC = () => {
   const [errors, setErrors] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const isTestEnabled = isSaved && currentDraft !== null && saveStatus === 'Ready';
+  const allScripts = () => {
+    if (!currentDraft) return '';
+    let text = (currentDraft.greeting?.script || '') + '\n';
+    currentDraft.conversations.forEach(c => {
+      c.intents.forEach(i => {
+        text += i.fixed_response + '\n';
+      });
+    });
+    text += (currentDraft.closing?.script || '');
+    return text;
+  };
+
+  const variables = extractVariables(allScripts());
+  const missingTestValues = variables.some(v => !(currentDraft?.dynamic_variables?.[v]?.trim()));
+
+  const isTestEnabled = isSaved && currentDraft !== null && saveStatus === 'Ready' && !missingTestValues;
 
   useEffect(() => {
     fetch(API_BASE)
@@ -115,50 +130,6 @@ const VoiceSystemPage: React.FC = () => {
     if (!currentDraft) return;
     setSaveStatus('Saving');
 
-    // Validation
-    const newErrors: any = {};
-    const greetingScript = currentDraft.greeting?.script || '';
-    if (!greetingScript.trim()) newErrors.greeting = 'Script required';
-    if (hasMalformedVariables(greetingScript)) newErrors.greeting = 'Malformed variable syntax';
-
-    currentDraft.conversations.forEach(conv => {
-      newErrors[conv.id] = {};
-      if (!conv.heading.trim()) newErrors[conv.id].heading = 'Heading required';
-      if (conv.intents.length === 0) newErrors[conv.id].intents = 'At least one Intent required';
-
-      newErrors[conv.id].intentErrors = {};
-      conv.intents.forEach(intent => {
-        const iErr: any = {};
-        if (!intent.name.trim()) iErr.name = 'Name required';
-        const validPhrases = intent.example_phrases.filter(p => p.text.trim() !== '');
-        if (validPhrases.length === 0) iErr.phrases = 'At least one non-empty Example Phrase required';
-        if (!intent.fixed_response.trim()) iErr.response = 'Fixed Agent Response required';
-        if (hasMalformedVariables(intent.fixed_response)) iErr.response = 'Malformed variable syntax';
-        
-        if (Object.keys(iErr).length > 0) {
-          newErrors[conv.id].intentErrors[intent.id] = iErr;
-        }
-      });
-    });
-
-    const closingScript = currentDraft.closing?.script || '';
-    if (!closingScript.trim()) newErrors.closing = 'Script required';
-    if (hasMalformedVariables(closingScript)) newErrors.closing = 'Malformed variable syntax';
-
-    let hasErrors = false;
-    if (newErrors.greeting || newErrors.closing) hasErrors = true;
-    currentDraft.conversations.forEach(c => {
-      if (newErrors[c.id].heading || newErrors[c.id].intents || Object.keys(newErrors[c.id].intentErrors).length > 0) {
-        hasErrors = true;
-      }
-    });
-
-    if (hasErrors) {
-      setErrors(newErrors);
-      setSaveStatus('Save Failed');
-      return;
-    }
-
     try {
       const isExisting = currentDraft.id && !currentDraft.id.startsWith('tmp-');
       const url = isExisting ? `${API_BASE}/${currentDraft.id}` : API_BASE;
@@ -171,6 +142,14 @@ const VoiceSystemPage: React.FC = () => {
       });
       
       if (!res.ok) {
+        if (res.status === 400) {
+          const errorData = await res.json();
+          if (errorData.detail && typeof errorData.detail === 'object') {
+            setErrors(errorData.detail);
+            setSaveStatus('Save Failed');
+            return;
+          }
+        }
         throw new Error('Save failed on backend');
       }
       
@@ -224,20 +203,6 @@ const VoiceSystemPage: React.FC = () => {
       alert('Failed to delete agent');
     }
   };
-
-  const allScripts = () => {
-    if (!currentDraft) return '';
-    let text = (currentDraft.greeting?.script || '') + '\n';
-    currentDraft.conversations.forEach(c => {
-      c.intents.forEach(i => {
-        text += i.fixed_response + '\n';
-      });
-    });
-    text += (currentDraft.closing?.script || '');
-    return text;
-  };
-
-  const variables = extractVariables(allScripts());
 
   if (isLoading) {
     return (

@@ -92,6 +92,12 @@ describe('VoiceSystemPage', () => {
     expect(screen.getByText('callee_name')).toBeInTheDocument();
     expect(screen.getByText('amount')).toBeInTheDocument();
     
+    // Fill test values so Test Web Call is enabled
+    const inputs = screen.getAllByRole('textbox');
+    const varInputs = inputs.filter(i => (i as HTMLInputElement).placeholder === 'Enter test value');
+    fireEvent.change(varInputs[0], { target: { value: 'John' } });
+    fireEvent.change(varInputs[1], { target: { value: '100' } });
+    
     // Save (wait for async fetch)
     await act(async () => {
       fireEvent.click(screen.getByText('Save Agent'));
@@ -212,7 +218,9 @@ describe('VoiceSystemPage', () => {
     // Should immediately show the agent title from the loaded data instead of Create Agent
     const els = await screen.findAllByText('Persisted Agent');
     expect(els[0]).toBeInTheDocument();
-    expect(screen.getAllByText('Ready')[0]).toBeInTheDocument();
+    // Expect "Ready" instead of "Unsaved Changes"
+    const readyEls = await screen.findAllByText('Ready');
+    expect(readyEls[0]).toBeInTheDocument();
     
     // Create Agent form should NOT be present
     expect(screen.queryByPlaceholderText('[ Enter agent name ]')).not.toBeInTheDocument();
@@ -255,5 +263,107 @@ describe('VoiceSystemPage', () => {
     // Since only 1 agent existed, deleting it should return us to the empty state
     const createEls = await screen.findAllByText('Create Agent');
     expect(createEls[0]).toBeInTheDocument();
+  });
+
+  it('handles backend validation errors', async () => {
+    globalThis.fetch = vi.fn().mockImplementation((url, options) => {
+      if (url.includes('/api/agents') && (!options || options.method === 'GET')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (options && (options.method === 'POST' || options.method === 'PUT')) {
+        return Promise.resolve({
+          ok: false,
+          status: 400,
+          json: () => Promise.resolve({
+            detail: {
+              greeting: 'Malformed variable syntax',
+              name: 'Name required'
+            }
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(<VoiceSystemPage />);
+    await screen.findAllByText('Create Agent');
+
+    // Create Agent
+    fireEvent.change(screen.getByPlaceholderText('[ Enter agent name ]'), { target: { value: 'Agent Error' } });
+    fireEvent.click(screen.getAllByText('Create Agent').find(el => el.tagName === 'BUTTON')!);
+    
+    // Save (trigger mock error)
+    await act(async () => {
+      fireEvent.click(screen.getByText('Save Agent'));
+    });
+    
+    const fails = await screen.findAllByText('Save Failed');
+    expect(fails[0]).toBeInTheDocument();
+    
+    const errs = await screen.findAllByText('Malformed variable syntax');
+    expect(errs[0]).toBeInTheDocument();
+  });
+
+  it('disables Test Web Call when test values are missing', async () => {
+    globalThis.fetch = vi.fn().mockImplementation((url, options) => {
+      if (url.includes('/api/agents') && (!options || options.method === 'GET')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (options && (options.method === 'POST' || options.method === 'PUT')) {
+        const body = JSON.parse(options.body);
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...body, id: 'agent-123', version: 1 })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(<VoiceSystemPage />);
+    await screen.findAllByText('Create Agent');
+
+    fireEvent.change(screen.getByPlaceholderText('[ Enter agent name ]'), { target: { value: 'Agent Vars' } });
+    fireEvent.click(screen.getAllByText('Create Agent').find(el => el.tagName === 'BUTTON')!);
+    
+    // Fill required fields
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    fireEvent.change(textareas[0], { target: { value: 'Hello {{user}}' } });
+    
+    const conversationHeading = screen.getByPlaceholderText('Conversation Heading');
+    fireEvent.change(conversationHeading, { target: { value: 'Conv 1' } });
+    
+    const intentName = screen.getByPlaceholderText('Intent Name');
+    fireEvent.change(intentName, { target: { value: 'Intent 1' } });
+    
+    const examplePhrase = screen.getByPlaceholderText('Example Phrase');
+    fireEvent.change(examplePhrase, { target: { value: 'Yes' } });
+    
+    const intentResponse = screen.getByPlaceholderText('Fixed Agent Response');
+    fireEvent.change(intentResponse, { target: { value: 'Great' } });
+    
+    const closingTextArea = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA')[2];
+    fireEvent.change(closingTextArea, { target: { value: 'Bye' } });
+    
+    await act(async () => {
+      fireEvent.click(screen.getByText('Save Agent'));
+    });
+    
+    expect(screen.getAllByText('Ready')[0]).toBeInTheDocument();
+    
+    // Web call disabled because {{user}} test value is missing
+    const testCallBtn = screen.getByText('Test Web Call');
+    expect(testCallBtn).toBeDisabled();
+
+    // Fill test value
+    const inputs = screen.getAllByRole('textbox');
+    // Find the dynamic variable input for 'user'
+    const varInput = inputs.find(i => (i as HTMLInputElement).placeholder === 'Enter test value');
+    fireEvent.change(varInput!, { target: { value: 'John' } });
+
+    // It should become enabled (after saving, since testEnabled checks isSaved)
+    await act(async () => {
+      fireEvent.click(screen.getByText('Save Agent'));
+    });
+    expect(testCallBtn).not.toBeDisabled();
   });
 });

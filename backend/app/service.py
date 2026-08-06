@@ -2,6 +2,7 @@ import uuid
 import threading
 from .models import AgentModel
 from . import storage
+from .variables import validate_agent, sync_dynamic_variables, ValidationException
 
 _save_locks = {}
 
@@ -31,6 +32,11 @@ def assign_stable_ids(agent: AgentModel):
                         phrase.id = f"phrase-{uuid.uuid4().hex[:8]}"
 
 def create_agent(agent: AgentModel) -> AgentModel:
+    errors, extracted_vars = validate_agent(agent)
+    if errors:
+        raise ValidationException(errors)
+    sync_dynamic_variables(agent, extracted_vars)
+    
     agent.id = f"agent-{uuid.uuid4().hex[:8]}"
     agent.version = 1
     assign_stable_ids(agent)
@@ -39,6 +45,11 @@ def create_agent(agent: AgentModel) -> AgentModel:
     return agent
 
 def update_agent(agent_id: str, agent: AgentModel) -> AgentModel:
+    errors, extracted_vars = validate_agent(agent)
+    if errors:
+        raise ValidationException(errors)
+    sync_dynamic_variables(agent, extracted_vars)
+    
     lock = get_agent_lock(agent_id)
     with lock:
         current_version = storage.get_active_version(agent_id)

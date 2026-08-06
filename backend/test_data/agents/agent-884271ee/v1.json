@@ -1,0 +1,44 @@
+{
+  "id": "agent-884271ee",
+  "version": 1,
+  "name": "Agent Update",
+  "language": "Tamil",
+  "status": "draft",
+  "greeting": {
+    "id": "greeting-220809ee",
+    "script": "Hello",
+    "audio_manifest_id": null
+  },
+  "conversations": [
+    {
+      "id": "conv-efbb27ba",
+      "position": 1,
+      "heading": "Conv1",
+      "intents": [
+        {
+          "id": "intent-8565d4ee",
+          "name": "Intent1",
+          "example_phrases": [
+            {
+              "id": "phrase-b0dfff53",
+              "text": "Hi"
+            }
+          ],
+          "fixed_response": "Hello",
+          "audio_manifest_id": null
+        }
+      ]
+    }
+  ],
+  "closing": {
+    "id": "closing-28296a33",
+    "script": "Bye",
+    "audio_manifest_id": null
+  },
+  "dynamic_variables": {},
+  "fallbacks": {
+    "clarify_script": "Sorry, I could not understand that. Could you please repeat?",
+    "failure_script": "I am unable to understand the response. I will end the call for now.",
+    "max_failed_attempts": 2
+  }
+}
