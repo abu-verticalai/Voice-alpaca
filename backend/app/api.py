@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from .models import AgentModel
+from .models import AgentModel, MatchRequest
 from . import storage, service
 
 from .variables import ValidationException
@@ -41,3 +41,12 @@ def update_agent(agent_id: str, agent: AgentModel):
 def delete_agent(agent_id: str):
     storage.delete_agent(agent_id)
     return {"status": "ok"}
+
+@router.post("/api/agents/{agent_id}/match")
+def match_intent_endpoint(agent_id: str, req: MatchRequest):
+    try:
+        agent = storage.get_agent(agent_id)
+        from .matcher import match_intent
+        return match_intent(agent, req.conversation_id, req.text, req.failed_attempts)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

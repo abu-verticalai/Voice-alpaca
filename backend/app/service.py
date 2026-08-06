@@ -40,6 +40,9 @@ def create_agent(agent: AgentModel) -> AgentModel:
     agent.id = f"agent-{uuid.uuid4().hex[:8]}"
     agent.version = 1
     assign_stable_ids(agent)
+    
+    _process_embeddings(agent)
+    
     storage.save_agent(agent)
     storage.set_active_version(agent.id, agent.version)
     return agent
@@ -59,7 +62,42 @@ def update_agent(agent_id: str, agent: AgentModel) -> AgentModel:
         agent.id = agent_id
         agent.version = current_version + 1
         assign_stable_ids(agent)
+        
+        _process_embeddings(agent)
                         
         storage.save_agent(agent)
         storage.set_active_version(agent.id, agent.version)
         return agent
+
+def _process_embeddings(agent: AgentModel):
+    from .normalizer import normalize_text
+    from .embeddings import get_phrase_hash, get_embeddings
+    
+    existing_embs = storage.get_agent_embeddings(agent.id)
+    new_embs = {}
+    
+    phrases_to_embed = []
+    hashes_to_embed = []
+    
+    for conv in agent.conversations:
+        for intent in conv.intents:
+            for phrase in intent.example_phrases:
+                norm_text = normalize_text(phrase.text)
+                if not norm_text:
+                    continue
+                phash = get_phrase_hash(norm_text)
+                if phash in existing_embs:
+                    new_embs[phash] = existing_embs[phash]
+                elif phash not in new_embs:
+                    phrases_to_embed.append(norm_text)
+                    hashes_to_embed.append(phash)
+                    new_embs[phash] = None # placeholder
+                    
+    if phrases_to_embed:
+        import numpy as np
+        embeddings = get_embeddings(phrases_to_embed)
+        for i, phash in enumerate(hashes_to_embed):
+            # store as list of floats for JSON serialization
+            new_embs[phash] = embeddings[i].tolist()
+            
+    storage.save_agent_embeddings(agent.id, new_embs)

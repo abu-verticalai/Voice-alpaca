@@ -1,0 +1,123 @@
+{
+  "id": "agent-endpoint",
+  "version": 1,
+  "name": "Test",
+  "language": "English",
+  "status": "draft",
+  "greeting": null,
+  "conversations": [
+    {
+      "id": "conv-1",
+      "position": 1,
+      "heading": "Greeting",
+      "intents": [
+        {
+          "id": "intent-yes",
+          "name": "Yes",
+          "example_phrases": [
+            {
+              "id": "",
+              "text": "yes"
+            },
+            {
+              "id": "",
+              "text": "yeah sure"
+            },
+            {
+              "id": "",
+              "text": "absolutely"
+            }
+          ],
+          "fixed_response": "Great",
+          "audio_manifest_id": null
+        },
+        {
+          "id": "intent-no",
+          "name": "No",
+          "example_phrases": [
+            {
+              "id": "",
+              "text": "no"
+            },
+            {
+              "id": "",
+              "text": "nope"
+            },
+            {
+              "id": "",
+              "text": "not really"
+            }
+          ],
+          "fixed_response": "Okay",
+          "audio_manifest_id": null
+        },
+        {
+          "id": "intent-tamil-yes",
+          "name": "Tamil Yes",
+          "example_phrases": [
+            {
+              "id": "",
+              "text": "\u0b86\u0bae\u0bbe\u0bae\u0bcd"
+            },
+            {
+              "id": "",
+              "text": "kandippa"
+            }
+          ],
+          "fixed_response": "Nandri",
+          "audio_manifest_id": null
+        },
+        {
+          "id": "intent-ambig-1",
+          "name": "Ambig 1",
+          "example_phrases": [
+            {
+              "id": "",
+              "text": "ambiguous exact"
+            }
+          ],
+          "fixed_response": "Ambig1",
+          "audio_manifest_id": null
+        },
+        {
+          "id": "intent-ambig-2",
+          "name": "Ambig 2",
+          "example_phrases": [
+            {
+              "id": "",
+              "text": "ambiguous exact"
+            }
+          ],
+          "fixed_response": "Ambig2",
+          "audio_manifest_id": null
+        }
+      ]
+    },
+    {
+      "id": "conv-2",
+      "position": 1,
+      "heading": "Isolated",
+      "intents": [
+        {
+          "id": "intent-isolated",
+          "name": "Isolated Yes",
+          "example_phrases": [
+            {
+              "id": "",
+              "text": "yes"
+            }
+          ],
+          "fixed_response": "Isolated Great",
+          "audio_manifest_id": null
+        }
+      ]
+    }
+  ],
+  "closing": null,
+  "dynamic_variables": {},
+  "fallbacks": {
+    "clarify_script": "clarify",
+    "failure_script": "fail",
+    "max_failed_attempts": 2
+  }
+}

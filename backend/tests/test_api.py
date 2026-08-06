@@ -1,16 +1,10 @@
 import os
 import sys
 import pytest
-from fastapi.testclient import TestClient
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ["DATA_DIR"] = "test_data"
 
-from app.main import app
-
-client = TestClient(app)
-
-def test_update_agent():
+def test_update_agent(client):
     payload = {
         "name": "Agent Update",
         "language": "Tamil",
@@ -36,7 +30,7 @@ def test_update_agent():
     assert data["version"] == 2
     assert data["name"] == "Agent Updated"
 
-def test_create_and_get_agent():
+def test_create_and_get_agent(client):
     payload = {
         "name": "Test Agent",
         "language": "English",
