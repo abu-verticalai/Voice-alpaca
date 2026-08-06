@@ -6,8 +6,8 @@ export interface ExamplePhrase {
 export interface Intent {
   id: string;
   name: string;
-  examplePhrases: ExamplePhrase[];
-  fixedResponse: string;
+  example_phrases: ExamplePhrase[];
+  fixed_response: string;
 }
 
 export interface Conversation {
@@ -20,8 +20,11 @@ export interface Agent {
   id: string;
   name: string;
   language: string;
-  greeting: string;
+  greeting?: { script: string };
   conversations: Conversation[];
-  closing: string;
-  dynamicVariables: Record<string, string>;
+  closing?: { script: string };
+  dynamic_variables: Record<string, string>;
+  fallbacks?: any;
+  version?: number;
+  status?: string;
 }

@@ -1,0 +1,57 @@
+import os
+import sys
+import pytest
+from fastapi.testclient import TestClient
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.environ["DATA_DIR"] = "test_data"
+
+from app.main import app
+
+client = TestClient(app)
+
+def test_create_and_get_agent():
+    payload = {
+        "name": "Test Agent",
+        "language": "English",
+        "greeting": {"script": "Hello"},
+        "closing": {"script": "Bye"},
+        "conversations": [{"heading": "Conv1", "intents": []}],
+        "dynamic_variables": {},
+        "fallbacks": {}
+    }
+    
+    # Create
+    response = client.post("/api/agents", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"].startswith("agent-")
+    assert data["version"] == 1
+    assert data["name"] == "Test Agent"
+    
+    agent_id = data["id"]
+    
+    # Get
+    response = client.get(f"/api/agents/{agent_id}")
+    assert response.status_code == 200
+    assert response.json()["id"] == agent_id
+
+    # List
+    response = client.get("/api/agents")
+    assert response.status_code == 200
+    assert len(response.json()) >= 1
+    
+    # Update
+    data["name"] = "Updated Agent"
+    response = client.put(f"/api/agents/{agent_id}", json=data)
+    assert response.status_code == 200
+    updated_data = response.json()
+    assert updated_data["version"] == 2
+    assert updated_data["name"] == "Updated Agent"
+    
+    # Delete
+    response = client.delete(f"/api/agents/{agent_id}")
+    assert response.status_code == 200
+    
+    response = client.get(f"/api/agents/{agent_id}")
+    assert response.status_code == 404
