@@ -1,43 +1,41 @@
 {
-  "id": "agent-8e47315c",
+  "id": "agent-507d0bad",
   "version": 1,
-  "name": "dfl",
+  "name": "Agent Update",
   "language": "Tamil",
   "status": "draft",
   "greeting": {
-    "id": "greeting-c1920cd4",
-    "script": "sffdf",
+    "id": "greeting-89261fde",
+    "script": "Hello",
     "audio_manifest_id": null
   },
   "conversations": [
     {
-      "id": "conv-35aa0308",
+      "id": "conv-4de0a390",
       "position": 1,
-      "heading": "hii",
+      "heading": "Conv1",
       "intents": [
         {
-          "id": "intent-88d65543",
-          "name": "fdfdfsf",
+          "id": "intent-7a5813bd",
+          "name": "Intent1",
           "example_phrases": [
             {
-              "id": "phrase-6e65e39c",
-              "text": "fdfd"
+              "id": "phrase-01c740f5",
+              "text": "Hi"
             }
           ],
-          "fixed_response": "fdg hii{{name}}",
+          "fixed_response": "Hello",
           "audio_manifest_id": null
         }
       ]
     }
   ],
   "closing": {
-    "id": "closing-4c8a0bf0",
-    "script": "vfbfd",
+    "id": "closing-512f4a4f",
+    "script": "Bye",
     "audio_manifest_id": null
   },
-  "dynamic_variables": {
-    "name": "abu"
-  },
+  "dynamic_variables": {},
   "fallbacks": {
     "clarify_script": "Sorry, I could not understand that. Could you please repeat?",
     "failure_script": "I am unable to understand the response. I will end the call for now.",

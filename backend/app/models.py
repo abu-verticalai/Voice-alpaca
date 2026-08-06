@@ -44,3 +44,8 @@ class AgentModel(BaseModel):
     closing: Optional[ClosingModel] = None
     dynamic_variables: Dict[str, str] = Field(default_factory=dict)
     fallbacks: FallbacksModel = Field(default_factory=FallbacksModel)
+
+class MatchRequest(BaseModel):
+    conversation_id: str
+    text: str
+    failed_attempts: int = 0
