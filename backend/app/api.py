@@ -3,12 +3,16 @@ from typing import List
 from .models import AgentModel
 from . import storage, service
 
+from .variables import ValidationException
+
 router = APIRouter()
 
 @router.post("/api/agents", response_model=AgentModel)
 def create_agent(agent: AgentModel):
     try:
         return service.create_agent(agent)
+    except ValidationException as e:
+        raise HTTPException(status_code=400, detail=e.errors)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -24,6 +28,8 @@ def get_agent(agent_id: str):
 def update_agent(agent_id: str, agent: AgentModel):
     try:
         return service.update_agent(agent_id, agent)
+    except ValidationException as e:
+        raise HTTPException(status_code=400, detail=e.errors)
     except ValueError as e:
         if str(e) == "Agent not found":
             raise HTTPException(status_code=404, detail=str(e))

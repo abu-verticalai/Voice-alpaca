@@ -10,13 +10,43 @@ from app.main import app
 
 client = TestClient(app)
 
+def test_update_agent():
+    payload = {
+        "name": "Agent Update",
+        "language": "Tamil",
+        "greeting": {"script": "Hello"},
+        "closing": {"script": "Bye"},
+        "conversations": [{"heading": "Conv1", "intents": [{
+            "name": "Intent1",
+            "example_phrases": [{"text": "Hi"}],
+            "fixed_response": "Hello"
+        }]}],
+        "dynamic_variables": {},
+        "fallbacks": {}
+    }
+    create_res = client.post("/api/agents", json=payload)
+    agent_id = create_res.json()["id"]
+
+    # Update
+    payload["name"] = "Agent Updated"
+    update_res = client.put(f"/api/agents/{agent_id}", json=payload)
+    assert update_res.status_code == 200
+    data = update_res.json()
+    assert data["id"] == agent_id
+    assert data["version"] == 2
+    assert data["name"] == "Agent Updated"
+
 def test_create_and_get_agent():
     payload = {
         "name": "Test Agent",
         "language": "English",
         "greeting": {"script": "Hello"},
         "closing": {"script": "Bye"},
-        "conversations": [{"heading": "Conv1", "intents": []}],
+        "conversations": [{"heading": "Conv1", "intents": [{
+            "name": "Intent1",
+            "example_phrases": [{"text": "Hi"}],
+            "fixed_response": "Hello"
+        }]}],
         "dynamic_variables": {},
         "fallbacks": {}
     }
