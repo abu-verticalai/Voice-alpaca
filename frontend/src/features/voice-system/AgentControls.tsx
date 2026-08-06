@@ -12,6 +12,7 @@ interface Props {
   onTestCall: () => void;
   isTestEnabled: boolean;
   saveStatus: string;
+  onDeleteAgent?: () => void;
 }
 
 const AgentControls: React.FC<Props> = ({
@@ -25,6 +26,7 @@ const AgentControls: React.FC<Props> = ({
   onTestCall,
   isTestEnabled,
   saveStatus,
+  onDeleteAgent,
 }) => {
   return (
     <div className="status-bar">
@@ -59,6 +61,19 @@ const AgentControls: React.FC<Props> = ({
       <div className="controls-right">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', height: '100%' }}>
           <span className="label" style={{ fontWeight: '600' }}>{saveStatus}</span>
+          {onDeleteAgent && (
+            <button 
+              className="button button-danger-muted" 
+              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+              onClick={() => {
+                if (window.confirm('Delete this Agent permanently?')) {
+                  onDeleteAgent();
+                }
+              }}
+            >
+              Delete Agent
+            </button>
+          )}
           <button className="button button-primary" onClick={onSave}>
             Save Agent
           </button>

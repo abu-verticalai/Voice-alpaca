@@ -25,8 +25,8 @@ const ConversationSection: React.FC<Props> = ({ conversation, index, onChange, o
     const newIntent: Intent = {
       id: `intent-${Date.now()}-${Math.random()}`,
       name: '',
-      examplePhrases: [{ id: `phrase-${Date.now()}-${Math.random()}`, text: '' }],
-      fixedResponse: ''
+      example_phrases: [{ id: `phrase-${Date.now()}-${Math.random()}`, text: '' }],
+      fixed_response: ''
     };
     onChange({ ...conversation, intents: [...conversation.intents, newIntent] });
   };

@@ -14,18 +14,18 @@ const IntentRow: React.FC<Props> = ({ intent, onChange, onDelete, errors }) => {
   };
 
   const handlePhraseChange = (id: string, text: string) => {
-    const newPhrases = intent.examplePhrases.map(p => p.id === id ? { ...p, text } : p);
-    onChange({ ...intent, examplePhrases: newPhrases });
+    const newPhrases = intent.example_phrases.map(p => p.id === id ? { ...p, text } : p);
+    onChange({ ...intent, example_phrases: newPhrases });
   };
 
   const addPhrase = () => {
-    const newPhrases = [...intent.examplePhrases, { id: `phrase-${Date.now()}-${Math.random()}`, text: '' }];
-    onChange({ ...intent, examplePhrases: newPhrases });
+    const newPhrases = [...intent.example_phrases, { id: `phrase-${Date.now()}-${Math.random()}`, text: '' }];
+    onChange({ ...intent, example_phrases: newPhrases });
   };
 
   const removePhrase = (id: string) => {
-    const newPhrases = intent.examplePhrases.filter(p => p.id !== id);
-    onChange({ ...intent, examplePhrases: newPhrases });
+    const newPhrases = intent.example_phrases.filter(p => p.id !== id);
+    onChange({ ...intent, example_phrases: newPhrases });
   };
 
   const handleDeleteClick = () => {
@@ -48,7 +48,7 @@ const IntentRow: React.FC<Props> = ({ intent, onChange, onDelete, errors }) => {
       </td>
       <td data-label="Example Phrases">
         <div className="phrase-input-list">
-          {intent.examplePhrases.map(p => (
+          {intent.example_phrases.map(p => (
             <div key={p.id} className="phrase-row">
               <input 
                 className="input" 
@@ -69,8 +69,8 @@ const IntentRow: React.FC<Props> = ({ intent, onChange, onDelete, errors }) => {
       <td data-label="Fixed Agent Response">
         <textarea 
           className="textarea" 
-          value={intent.fixedResponse} 
-          onChange={e => onChange({ ...intent, fixedResponse: e.target.value })}
+          value={intent.fixed_response} 
+          onChange={e => onChange({ ...intent, fixed_response: e.target.value })}
           placeholder="Fixed Agent Response"
           style={{ width: '100%', minHeight: '60px', boxSizing: 'border-box' }}
         />
