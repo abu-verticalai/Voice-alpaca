@@ -13,6 +13,13 @@ interface Props {
   isTestEnabled: boolean;
   saveStatus: string;
   onDeleteAgent?: () => void;
+  voiceCatalog?: Array<{name: string, value: string}>;
+  selectedSpeaker?: string;
+  onSpeakerChange?: (speaker: string) => void;
+  onPreviewVoice?: () => void;
+  previewState?: 'idle' | 'previewing' | 'ready' | 'failed';
+  voiceCatalogStatus?: 'loading' | 'error' | 'success';
+  onRetryVoiceLoad?: () => void;
 }
 
 const AgentControls: React.FC<Props> = ({
@@ -27,6 +34,13 @@ const AgentControls: React.FC<Props> = ({
   isTestEnabled,
   saveStatus,
   onDeleteAgent,
+  voiceCatalog = [],
+  selectedSpeaker = '',
+  onSpeakerChange,
+  onPreviewVoice,
+  previewState = 'idle',
+  voiceCatalogStatus = 'success',
+  onRetryVoiceLoad
 }) => {
   return (
     <div className="status-bar">
@@ -56,6 +70,41 @@ const AgentControls: React.FC<Props> = ({
             <option value="English">English</option>
             <option value="Tanglish">Tanglish</option>
           </select>
+        </div>
+        <div className="form-group">
+          <label className="label">Voice</label>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {voiceCatalogStatus === 'error' ? (
+              <>
+                <span style={{color:'red', fontSize:'0.8rem'}}>Unable to load voices. Please retry.</span>
+                <button className="button button-secondary" onClick={onRetryVoiceLoad}>Retry</button>
+              </>
+            ) : (
+              <>
+                <select 
+                  className="select" 
+                  value={selectedSpeaker} 
+                  onChange={(e) => onSpeakerChange && onSpeakerChange(e.target.value)}
+                  disabled={voiceCatalogStatus === 'loading'}
+                >
+                  <option value="" disabled>
+                    {voiceCatalogStatus === 'loading' ? 'Loading...' : 'Select Voice'}
+                  </option>
+                  {voiceCatalog.map(voice => (
+                    <option key={voice.value} value={voice.value}>{voice.name}</option>
+                  ))}
+                </select>
+                <button 
+                  className="button button-secondary" 
+                  onClick={onPreviewVoice}
+                  disabled={!selectedSpeaker || previewState === 'previewing'}
+                >
+                  {previewState === 'previewing' ? 'Previewing...' : 'Preview Voice'}
+                </button>
+                {previewState === 'failed' && <span style={{color:'red', fontSize:'0.8rem'}}>Failed</span>}
+              </>
+            )}
+          </div>
         </div>
       </div>
       <div className="controls-right">

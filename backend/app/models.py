@@ -1,6 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 
+class VoiceModel(BaseModel):
+    speaker: str
+
 class ExamplePhraseModel(BaseModel):
     id: str = ""
     text: str
@@ -38,6 +41,7 @@ class AgentModel(BaseModel):
     version: int = 1
     name: str
     language: str
+    voice: Optional[VoiceModel] = None
     status: str = "draft"
     greeting: Optional[GreetingModel] = None
     conversations: List[ConversationModel] = Field(default_factory=list)

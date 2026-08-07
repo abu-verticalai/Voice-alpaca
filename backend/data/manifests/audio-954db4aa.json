@@ -1,0 +1,9 @@
+{
+  "id": "audio-954db4aa",
+  "segments": [
+    {
+      "type": "fixed_audio",
+      "path": "../audio/fixed/agent-6b2c1010/v1/048470a3.wav"
+    }
+  ]
+}
