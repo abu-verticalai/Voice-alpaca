@@ -1,0 +1,47 @@
+{
+  "id": "agent-94b6bdc3",
+  "version": 2,
+  "name": "DFL",
+  "language": "Tamil",
+  "voice": {
+    "speaker": "priya"
+  },
+  "status": "draft",
+  "greeting": {
+    "id": "greeting-70351f88",
+    "script": "xxxcxc",
+    "audio_manifest_id": "audio-ffb228dd"
+  },
+  "conversations": [
+    {
+      "id": "conv-6a101d6f",
+      "position": 1,
+      "heading": "xczc",
+      "intents": [
+        {
+          "id": "intent-ea3add8e",
+          "name": "dsdvd",
+          "example_phrases": [
+            {
+              "id": "phrase-9fe6850b",
+              "text": "zczzx"
+            }
+          ],
+          "fixed_response": "zxczxzx",
+          "audio_manifest_id": "audio-87488319"
+        }
+      ]
+    }
+  ],
+  "closing": {
+    "id": "closing-4146b573",
+    "script": "xcz",
+    "audio_manifest_id": "audio-0e613d0a"
+  },
+  "dynamic_variables": {},
+  "fallbacks": {
+    "clarify_script": "Sorry, I could not understand that. Could you please repeat?",
+    "failure_script": "I am unable to understand the response. I will end the call for now.",
+    "max_failed_attempts": 2
+  }
+}

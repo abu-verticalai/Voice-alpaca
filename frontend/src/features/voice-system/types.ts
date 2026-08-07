@@ -20,6 +20,7 @@ export interface Agent {
   id: string;
   name: string;
   language: string;
+  voice?: { speaker: string };
   greeting?: { script: string };
   conversations: Conversation[];
   closing?: { script: string };

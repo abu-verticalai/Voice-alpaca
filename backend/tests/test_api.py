@@ -8,6 +8,7 @@ def test_update_agent(client):
     payload = {
         "name": "Agent Update",
         "language": "Tamil",
+        "voice": {"speaker": "priya"},
         "greeting": {"script": "Hello"},
         "closing": {"script": "Bye"},
         "conversations": [{"heading": "Conv1", "intents": [{
@@ -34,6 +35,7 @@ def test_create_and_get_agent(client):
     payload = {
         "name": "Test Agent",
         "language": "English",
+        "voice": {"speaker": "priya"},
         "greeting": {"script": "Hello"},
         "closing": {"script": "Bye"},
         "conversations": [{"heading": "Conv1", "intents": [{
@@ -79,3 +81,22 @@ def test_create_and_get_agent(client):
     
     response = client.get(f"/api/agents/{agent_id}")
     assert response.status_code == 404
+
+def test_voice_catalog(client):
+    for lang in ["Tamil", "English", "Tanglish"]:
+        response = client.get(f"/api/voices?language={lang}")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 14
+        
+        assert data[0]["name"].startswith("Priya")
+        assert data[1]["name"].startswith("Ishita")
+        assert data[2]["name"] == "Neha"
+        assert data[3]["name"] == "Ritu"
+        
+        values = [v["value"] for v in data]
+        assert "ratan" not in values
+        assert "rohan" not in values
+        assert "priya" in values
+        assert "ishita" in values

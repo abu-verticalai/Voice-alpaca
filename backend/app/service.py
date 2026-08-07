@@ -33,6 +33,11 @@ def assign_stable_ids(agent: AgentModel):
 
 def create_agent(agent: AgentModel) -> AgentModel:
     errors, extracted_vars = validate_agent(agent)
+    if not agent.voice or not agent.voice.speaker:
+        if not errors:
+            errors = {}
+        errors["voice"] = "Voice is required"
+
     if errors:
         raise ValidationException(errors)
     sync_dynamic_variables(agent, extracted_vars)
@@ -43,12 +48,21 @@ def create_agent(agent: AgentModel) -> AgentModel:
     
     _process_embeddings(agent)
     
+    # Process audio
+    from .audio import prepare_agent_audio
+    prepare_agent_audio(agent)
+    
     storage.save_agent(agent)
     storage.set_active_version(agent.id, agent.version)
     return agent
 
 def update_agent(agent_id: str, agent: AgentModel) -> AgentModel:
     errors, extracted_vars = validate_agent(agent)
+    if not agent.voice or not agent.voice.speaker:
+        if not errors:
+            errors = {}
+        errors["voice"] = "Voice is required"
+
     if errors:
         raise ValidationException(errors)
     sync_dynamic_variables(agent, extracted_vars)
@@ -64,6 +78,14 @@ def update_agent(agent_id: str, agent: AgentModel) -> AgentModel:
         assign_stable_ids(agent)
         
         _process_embeddings(agent)
+        
+        # Process audio
+        from .audio import prepare_agent_audio
+        try:
+            prepare_agent_audio(agent)
+        except Exception as e:
+            # If TTS fails, do not save this version
+            raise ValueError(f"Audio preparation failed: {str(e)}")
                         
         storage.save_agent(agent)
         storage.set_active_version(agent.id, agent.version)

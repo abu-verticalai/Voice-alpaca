@@ -16,7 +16,8 @@ def isolated_storage(tmp_path):
     with mock.patch("app.settings.DATA_DIR", str(data_dir)), \
          mock.patch("app.settings.AGENTS_DIR", str(agents_dir)), \
          mock.patch("app.settings.ACTIVE_DIR", str(active_dir)), \
-         mock.patch("app.settings.EMBEDDINGS_DIR", str(embeddings_dir)):
+         mock.patch("app.settings.EMBEDDINGS_DIR", str(embeddings_dir)), \
+         mock.patch("app.settings.SARVAM_API_KEY", None):
         yield
 
 @pytest.fixture

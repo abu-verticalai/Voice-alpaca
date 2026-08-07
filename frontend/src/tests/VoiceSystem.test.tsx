@@ -14,6 +14,7 @@ describe('VoiceSystemPage', () => {
               id: 'agent-123',
               name: 'Test Agent',
               language: 'English',
+              voice: { speaker: 'priya' },
               greeting: { script: '' },
               conversations: [],
               closing: { script: '' },
@@ -31,6 +32,15 @@ describe('VoiceSystemPage', () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ ...body, id: 'agent-123', version: 1 })
+        });
+      }
+      if (url.includes('/api/voices')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([
+            {name: "Priya \u2014 Recommended", value: "priya"},
+            {name: "Ishita \u2014 Recommended", value: "ishita"}
+          ])
         });
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
@@ -97,6 +107,11 @@ describe('VoiceSystemPage', () => {
     const varInputs = inputs.filter(i => (i as HTMLInputElement).placeholder === 'Enter test value');
     fireEvent.change(varInputs[0], { target: { value: 'John' } });
     fireEvent.change(varInputs[1], { target: { value: '100' } });
+    
+    // Select Voice
+    await screen.findAllByText(/Priya/);
+    const selectsArray = screen.getAllByRole('combobox');
+    fireEvent.change(selectsArray[2], { target: { value: 'priya' } });
     
     // Save (wait for async fetch)
     await act(async () => {
@@ -203,6 +218,7 @@ describe('VoiceSystemPage', () => {
             id: 'agent-999',
             name: 'Persisted Agent',
             language: 'English',
+            voice: { speaker: 'priya' },
             greeting: { script: 'Hi there' },
             conversations: [],
             closing: { script: 'Bye there' },
@@ -235,6 +251,7 @@ describe('VoiceSystemPage', () => {
             id: 'agent-111',
             name: 'Agent A',
             language: 'English',
+            voice: { speaker: 'priya' },
             greeting: { script: 'Hi' },
             conversations: [],
             closing: { script: 'Bye' },
@@ -316,6 +333,15 @@ describe('VoiceSystemPage', () => {
           json: () => Promise.resolve({ ...body, id: 'agent-123', version: 1 })
         });
       }
+      if (url.includes('/api/voices')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([
+            {name: "Priya \u2014 Recommended", value: "priya"},
+            {name: "Ishita \u2014 Recommended", value: "ishita"}
+          ])
+        });
+      }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
     });
 
@@ -343,6 +369,11 @@ describe('VoiceSystemPage', () => {
     
     const closingTextArea = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA')[2];
     fireEvent.change(closingTextArea, { target: { value: 'Bye' } });
+    
+    // Select Voice
+    await screen.findAllByText(/Priya/);
+    const selectsForVoice = screen.getAllByRole('combobox');
+    fireEvent.change(selectsForVoice[2], { target: { value: 'priya' } });
     
     await act(async () => {
       fireEvent.click(screen.getByText('Save Agent'));

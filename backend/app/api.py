@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from .models import AgentModel, MatchRequest
-from . import storage, service
+from . import storage, service, tts
+from pydantic import BaseModel
+from fastapi.responses import Response
 
 from .variables import ValidationException
 
@@ -50,3 +52,22 @@ def match_intent_endpoint(agent_id: str, req: MatchRequest):
         return match_intent(agent, req.conversation_id, req.text, req.failed_attempts)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+class PreviewRequest(BaseModel):
+    speaker: str
+    language: str
+    text: str
+
+@router.get("/api/voices")
+def list_voices(language: str):
+    catalog = tts.get_voice_catalog(language)
+    return catalog
+
+@router.post("/api/voices/preview")
+def preview_voice(req: PreviewRequest):
+    try:
+        audio_bytes = tts.generate_preview(req.speaker, req.language, req.text)
+        return Response(content=audio_bytes, media_type="audio/wav")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+

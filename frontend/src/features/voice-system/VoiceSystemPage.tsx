@@ -22,6 +22,9 @@ const VoiceSystemPage: React.FC = () => {
   const [isWebCallOpen, setIsWebCallOpen] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [voiceCatalog, setVoiceCatalog] = useState<Array<{name: string, value: string}>>([]);
+  const [previewState, setPreviewState] = useState<'idle' | 'previewing' | 'ready' | 'failed'>('idle');
+  const [voiceCatalogStatus, setVoiceCatalogStatus] = useState<'loading' | 'error' | 'success'>('success');
 
   const allScripts = () => {
     if (!currentDraft) return '';
@@ -37,8 +40,9 @@ const VoiceSystemPage: React.FC = () => {
 
   const variables = extractVariables(allScripts());
   const missingTestValues = variables.some(v => !(currentDraft?.dynamic_variables?.[v]?.trim()));
+  const hasVoice = !!(currentDraft?.voice?.speaker);
 
-  const isTestEnabled = isSaved && currentDraft !== null && saveStatus === 'Ready' && !missingTestValues;
+  const isTestEnabled = isSaved && currentDraft !== null && saveStatus === 'Ready' && !missingTestValues && hasVoice;
 
   useEffect(() => {
     fetch(API_BASE)
@@ -61,6 +65,63 @@ const VoiceSystemPage: React.FC = () => {
       setSaveStatus('Unsaved Changes');
     }
   }, [currentDraft, isSaved, saveStatus]);
+
+  const fetchVoices = () => {
+    if (currentDraft?.language) {
+      setVoiceCatalogStatus('loading');
+      fetch(`http://localhost:8000/api/voices?language=${currentDraft.language}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed');
+          return res.json();
+        })
+        .then(data => {
+          setVoiceCatalog(Array.isArray(data) ? data : []);
+          setVoiceCatalogStatus('success');
+        })
+        .catch(err => {
+          console.error('Failed to load voice catalog', err);
+          setVoiceCatalogStatus('error');
+        });
+    }
+  };
+
+  useEffect(() => {
+    fetchVoices();
+  }, [currentDraft?.language]);
+
+  const handlePreviewVoice = async () => {
+    if (!currentDraft?.voice?.speaker || !currentDraft?.language) return;
+    setPreviewState('previewing');
+    
+    // Choose text to preview: Greeting or a fallback
+    let text = currentDraft.greeting?.script?.trim();
+    if (!text) text = "This is a preview of the voice agent.";
+    
+    // Replace variables temporarily for preview
+    text = text.replace(/\{\{.*?\}\}/g, "value");
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/voices/preview`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          speaker: currentDraft.voice.speaker,
+          language: currentDraft.language,
+          text: text
+        })
+      });
+      if (!res.ok) throw new Error('Preview failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.onended = () => setPreviewState('idle');
+      audio.play();
+      setPreviewState('ready');
+    } catch (err) {
+      console.error(err);
+      setPreviewState('failed');
+    }
+  };
 
   const handleCreateAgent = (name: string, language: string) => {
     const newAgent: Agent = {
@@ -239,12 +300,19 @@ const VoiceSystemPage: React.FC = () => {
           onSelectAgent={handleSelectAgent}
           onNewAgent={handleNewAgent}
           language={currentDraft.language}
-          onLanguageChange={lang => updateDraft(d => ({ ...d, language: lang }))}
+          onLanguageChange={lang => updateDraft(d => ({ ...d, language: lang, voice: undefined }))}
           onSave={handleSave}
           onTestCall={() => setIsWebCallOpen(true)}
           isTestEnabled={isTestEnabled}
           saveStatus={saveStatus}
           onDeleteAgent={handleDeleteAgent}
+          voiceCatalog={voiceCatalog}
+          selectedSpeaker={currentDraft.voice?.speaker}
+          onSpeakerChange={speaker => updateDraft(d => ({ ...d, voice: { speaker } }))}
+          onPreviewVoice={handlePreviewVoice}
+          previewState={previewState}
+          voiceCatalogStatus={voiceCatalogStatus}
+          onRetryVoiceLoad={fetchVoices}
         />
 
         <div className="agent-header">

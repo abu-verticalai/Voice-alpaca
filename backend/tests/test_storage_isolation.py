@@ -17,6 +17,7 @@ def test_storage_isolation(client):
     payload = {
         "name": "Isolation Test Agent",
         "language": "English",
+        "voice": {"speaker": "priya"},
         "greeting": {"script": "Hello"},
         "conversations": [{"heading": "Conv1", "intents": [{
             "name": "Intent1",
